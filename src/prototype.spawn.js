@@ -1,4 +1,4 @@
-var listOfRoles = ['harvester', 'lorry', 'claimer', 'upgrader', 'repairer', 'builder', 'wallRepairer'];
+var listOfRoles = ['harvester', 'claimer', 'upgrader', 'repairer', 'builder'];
 
 // create a new function for StructureSpawn
 StructureSpawn.prototype.spawnCreepsIfNecessary =
@@ -22,18 +22,8 @@ StructureSpawn.prototype.spawnCreepsIfNecessary =
 
         // if no harvesters are left AND either no miners or no lorries are left
         //  create a backup creep
-        if (numberOfCreeps['harvester'] == 0 && numberOfCreeps['lorry'] == 0) {
-            // if there are still miners or enough energy in Storage left
-            if (numberOfCreeps['miner'] > 0 ||
-                (room.storage != undefined && room.storage.store[RESOURCE_ENERGY] >= 150 + 550)) {
-                // create a lorry
-                name = this.createLorry(150);
-            }
-            // if there is no miner and not enough energy in Storage left
-            else {
-                // create a harvester because it can work on its own
-                name = this.createCustomCreep(room.energyAvailable, 'harvester');
-            }
+        if (numberOfCreeps['harvester'] == 0) {
+            name = this.createCustomCreep(room.energyAvailable, 'harvester');
         }
         // if no backup creep is required
         else {
@@ -76,12 +66,7 @@ StructureSpawn.prototype.spawnCreepsIfNecessary =
                 }
                 // if no claim order was found, check other roles
                 else if (numberOfCreeps[role] < this.memory.minCreeps[role]) {
-                    if (role == 'lorry') {
-                        name = this.createLorry(150);
-                    }
-                    else {
-                        name = this.createCustomCreep(maxEnergy, role);
-                    }
+                    name = this.createCustomCreep(maxEnergy, role);
                     break;
                 }
             }
@@ -179,23 +164,4 @@ StructureSpawn.prototype.createMiner =
     function (sourceId) {
         return this.createCreep([WORK, WORK, WORK, WORK, WORK, MOVE], undefined,
             { role: 'miner', sourceId: sourceId });
-    };
-
-// create a new function for StructureSpawn
-StructureSpawn.prototype.createLorry =
-    function (energy) {
-        // create a body with twice as many CARRY as MOVE parts
-        var numberOfParts = Math.floor(energy / 150);
-        // make sure the creep is not too big (more than 50 parts)
-        numberOfParts = Math.min(numberOfParts, Math.floor(50 / 3));
-        var body = [];
-        for (let i = 0; i < numberOfParts * 2; i++) {
-            body.push(CARRY);
-        }
-        for (let i = 0; i < numberOfParts; i++) {
-            body.push(MOVE);
-        }
-
-        // create creep with the created body and the role 'lorry'
-        return this.createCreep(body, undefined, { role: 'lorry', working: false });
     };
